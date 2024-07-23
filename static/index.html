@@ -5,14 +5,99 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
+<style>
+    * {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 20px;
+        margin: 0;
+        padding: 0;
+    }
+    header {
+        background-color: #2f4f4f;
+        color: #ffffff;
+        padding: 10px;
+    }
+    .form {
+        margin: 10px;
+    }
+    .form button{
+        padding:  0 10px;
+    }
+    .form__input {
+        margin: 10px;
+    }
+    .message {
+        border-top: 2px solid #e8e8e8;
+        border-bottom: 2px solid #e8e8e8;
+        margin: 15px;
+        display: flex;
+        align-items: center;
+    }
+    .message__image {
+        width: 100px;
+    }
+    .message__image img{
+        max-width: 100%;
+        max-height: 100%;
+    }
+    .message__content {
+        margin-left: 20px;
+    }
+</style>
 <body>
     <header>發表一篇圖文</header>
-    <form action="/api/message" method="post" enctype="multipart/form-data">
-        <input type="text" id="text">
-        <br>
-        <input type="file" id="file">
-        <br><br>
-        <button type="submit">送出</button>
-    </form>
+    <div class="form">
+        <div class="form__input">
+            文字內容
+            <input type="text" id="content">
+        </div>
+        <div class="form__input">
+            圖片檔案
+            <input type="file" id="image">
+        </div>
+        <button onclick="submitMessage()">送出</button>
+    </div>
+    <main>
+    </main>
+    <script>
+        fetch("/api/message")
+        .then(response => response.json())
+        .then((result) => {
+            const messages = result.data;
+            if (!messages) return;
+            for (const message of messages) {
+                const main = document.querySelector("main");
+                const msg = document.createElement("div");
+                msg.className = "message";
+                msg.innerHTML = `
+                    <div class="message__image">
+                        <img src=${message.image}>
+                    </div>    
+                    <div class="message__content">
+                    ${message.content}
+                    </div>
+                `
+                main.appendChild(msg);
+            } 
+        })
+
+        function submitMessage() {
+            const content = document.querySelector("#content").value;
+            const image = document.querySelector("#image").files[0];
+            const formData = new FormData();
+            formData.append("content", content);
+            formData.append("image", image);
+            fetch('/api/message', {
+            method: 'POST',
+            body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                return window.location.reload();
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
 </body>
 </html>
